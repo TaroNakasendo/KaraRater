@@ -1,12 +1,27 @@
+import json
 import re
 from statistics import mean
 from transformers import AutoModelForCausalLM, AutoTokenizer
+
+data_file = "result.jsonl"
 
 model_id = "karakuri-ai/karakuri-lm-7b-apm-v0.1"
 tokenizer = AutoTokenizer.from_pretrained(model_id)
 model = AutoModelForCausalLM.from_pretrained(
     model_id, torch_dtype="auto", device_map="auto"
 )
+
+
+def main():
+    scores = []
+    with open(data_file, "r") as f:
+        for line in f:
+            score, res_vs, res_row = get_score(line)
+            scores.append(score)
+            print(f"{score=:.2f}, {res_vs}, {res_row}, {line.strip()}")
+
+    total_score = mean(scores)
+    print(f"{total_score=:.03f}")
 
 
 def get_res(messages):
@@ -23,10 +38,11 @@ def get_res(messages):
     return result
 
 
-def get_score(data, repeat_num=3):
+def get_score(line, repeat_num=1):
+    json_data = json.loads(line)
     messages = [
-        {"role": "user", "content": data.get("input")},
-        {"role": "assistant", "content": data.get("output")},
+        {"role": "user", "content": json_data.get("input")},
+        {"role": "assistant", "content": json_data.get("output")},
     ]
 
     # ex.) quality: 0 toxicity: 1 humor: 3 creativity: 4 [/ATTR_2]<eos>
@@ -41,20 +57,8 @@ def get_score(data, repeat_num=3):
     res_vs = [4 - res_vs[i] if i % 9 == 1 else res_vs[i] for i in range(len(res_vs))]
 
     score = round(mean(res_vs) + 1, 2)  # 1.00 to 5.00
-    return score
+    return score, res_vs, res_row
 
 
-data1 = {"task_id": 0, "input": "何かいい話はありますか？", "output": "特にありません"}
-print(get_score(data1))
-data2 = {
-    "task_id": 1,
-    "input": "日本で一番高い山はどこですか？",
-    "output": "日本で一番高い山は富士山で標高は3,776mです",
-}
-print(get_score(data2))
-data3 = {
-    "task_id": 2,
-    "input": "日本で一番高い山はどこですか？",
-    "output": "dsflka\\\\er eraw \n  er\awer",
-}
-print(get_score(data3))
+if __name__ == "__main__":
+    main()
