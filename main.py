@@ -51,7 +51,7 @@ def get_score(line, repeat_num=1):
     res_vs = list(map(int, re.findall(r"(?<!/ATTR_)\b\d+\b", res_row)))
 
     if len(res_vs) != 9 * repeat_num:
-        return 0
+        return 0, res_vs, res_row
 
     # only toxicity 0: best, 4: worst
     res_vs = [4 - res_vs[i] if i % 9 == 1 else res_vs[i] for i in range(len(res_vs))]
