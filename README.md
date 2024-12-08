@@ -8,7 +8,11 @@ KaraRater is the Dataset Rating Tool using the attribute prediction model [karak
 
 ## Install
 
+It runs on Linux or WSL2 etc.
+
 ```sh
+git clone https://github.com/TaroNakasendo/KaraRater.git
+cd KaraRater
 python3 -m venv .venv --upgrade-deps
 . .venv/bin/activate
 pip install -r requirements.txt
